@@ -98,6 +98,9 @@
       <h3 class="text-center text-primary">{{ product.title }}</h3>
       {% autoescape false %}
       <p>Summary: {{ product.descriptionHtml }}</p>
+        {% if serviceVersion == "v2": %}
+          <p>It has been adapted for opera, stage, screen and musical theatre numerous times worldwide.</p>
+        {% endif %}
       {% endautoescape %}
     </div>
   </div>
