@@ -16,3 +16,7 @@ This modified code was used to create `iter8/examples-bookinfo-productpage:iter8
     {% if serviceVersion == "v2": %}
       <p>It has been adapted for opera, stage, screen and musical theatre numerous times worldwide.</p>
     {% endif %}
+
+
+### Reward Metric branch:
+- Added a reward metric as seen in Lines: <https://github.com/iter8-tools/bookinfoapp-productpage/blob/reward_metric/productpage.py#L203>
