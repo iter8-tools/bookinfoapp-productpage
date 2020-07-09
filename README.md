@@ -23,6 +23,7 @@ This modified code was used to create `iter8/examples-bookinfo-productpage:iter8
 - There are two images available on Docker for `bookinto-iter8`:
   - `iter8/productpage:reward-v1`: Generates a reward between 1-5 every time the productpage service is pinged
   - `iter8/productpage:reward-v2`: Generates a reward between 5-10 every time the productpage service is pinged
+- Any deployment created from these images should contain two environment variables: `DEPLOYMENT` and `namespace`
 - The name of the Prometheus metric where this value is reported is `number_of_books_purchased_total`
 - To change the reward metric to any other value change the random number being generated
 - To change the kind of metric to any other metric, follow the tutorial [here](https://github.com/iter8-tools/metrics-collection)
