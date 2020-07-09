@@ -12,7 +12,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-FROM python:3.7.4-slim
+FROM python:3.7.4
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python-dev \
+    curl \
+    build-essential
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
@@ -35,4 +40,4 @@ RUN python -m unittest discover
 
 USER 1
 
-CMD ["python", "productpage.py", "9080"]
+ENTRYPOINT [ "uwsgi", "--http", "0.0.0.0:9080", "--wsgi-file", "productpage.py", "--callable", "app_dispatch"]

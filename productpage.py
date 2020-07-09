@@ -34,6 +34,10 @@ import requests
 import os
 import asyncio
 
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app, Counter
+import random
+
 # These two lines enable debugging at httplib level (requests->urllib3->http.client)
 # You will see the REQUEST, including HEADERS and DATA, and RESPONSE with HEADERS but without DATA.
 # The only thing missing will be the response.body which is not logged.
@@ -196,6 +200,24 @@ def getForwardHeaders(request):
 
     return headers
 
+# Adding a revenue metrics to Prometheus
+REVENUE = Counter("number_of_books_purchased_total",\
+    "Total number of books purchased from the application.",\
+        ["destination_workload", "destination_workload_namespace"])
+
+
+#Changes to be made for a new version of bookinfo-iter8: productpage with reward criteria
+#STARTS HERE
+destination_workload = os.getenv("DEPLOYMENT")
+destination_workload_namespace = os.getenv("namespace")
+def generate_metric():
+    REVENUE.labels(destination_workload=destination_workload, destination_workload_namespace=destination_workload_namespace).inc(random.randint(5,10))
+#ENDS HERE
+
+# Add prometheus wsgi middleware to route /metrics requests
+app_dispatch = DispatcherMiddleware(app, {
+    '/metrics': make_wsgi_app()
+})
 
 # The UI:
 @app.route('/')
@@ -259,6 +281,8 @@ def front():
     user = session.get('user', '')
     product = getProduct(product_id)
     detailsStatus, details = getProductDetails(product_id, headers)
+    # get metrics
+    generate_metric()
 
     if flood_factor > 0:
         floodReviews(product_id, headers)
@@ -302,7 +326,6 @@ def ratingsRoute(product_id):
     headers = getForwardHeaders(request)
     status, ratings = getProductRatings(product_id, headers)
     return json.dumps(ratings), status, {'Content-Type': 'application/json'}
-
 
 # Data providers:
 def getProducts():
@@ -373,7 +396,6 @@ class Writer(object):
 
     def flush(self):
         self.file.flush()
-
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
