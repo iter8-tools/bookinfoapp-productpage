@@ -27,3 +27,16 @@ This modified code was used to create `iter8/examples-bookinfo-productpage:iter8
 - The name of the Prometheus metric where this value is reported is `number_of_books_purchased_total`
 - To change the reward metric to any other value, change the random number being generated [here](https://github.com/iter8-tools/bookinfoapp-productpage/blob/productpage-reward/productpage.py#L214)
 - To change the kind of metric to any other metric, follow the tutorial [here](https://github.com/iter8-tools/metrics-collection)
+
+
+###Customizable Productpage service
+- Image name: ``
+- This image comes with additional customizable features such as tail latency, latency, error rate, etc
+- The environment variables used are:
+  - `color`: Color of the text `William Shakespeare` on the application
+  - `deployment`: Defines the name of the deployment. Used when exporting metrics to Prometheus
+  - `namespace`: Defines the namespace associated with the deployment. Used when exporting metrics to Prometheus
+  - `reward_min`, `reward_max`: Defines what range of reward is generated for this deployment. Value can be any integer
+  - `delay_seconds`: Defines the delay in latency induced for this deployment (in seconds)- defaults to no delay
+  - `delay_probability`: Defines the probability with which delay_seconds is induced. Defaults to 1 i.e delay is induced for every request. value should be between 0 and 1
+  - `error_probability`: Defines the error rate induced in this deployment. Value should be between 0 and 1

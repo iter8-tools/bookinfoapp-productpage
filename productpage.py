@@ -33,7 +33,7 @@ import logging
 import requests
 import os
 import asyncio
-
+import time
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app, Counter
 import random
@@ -200,18 +200,38 @@ def getForwardHeaders(request):
 
     return headers
 
-# Adding a revenue metrics to Prometheus
-REVENUE = Counter("number_of_books_purchased_total",\
+# Adding a reward metric to Prometheus
+reward_metric = Counter("number_of_books_purchased_total",\
     "Total number of books purchased from the application.",\
         ["destination_workload", "destination_workload_namespace"])
 
 
-#Changes to be made for a new version of bookinfo-iter8: productpage with reward criteria
+#Changes made for a new version of bookinfo-iter8: productpage with custom reward metric
 #STARTS HERE
-destination_workload = os.getenv("DEPLOYMENT")
-destination_workload_namespace = os.getenv("namespace")
+# Get environment variables from deployment yaml
+
+#defines what color the text 'William Shakespeare' is given in the productpage HTML. Defaults to black
+color = "black" if "color" not in os.environ else os.getenv("color")
+#defines the name of the deployment. Used when exporting metrics to Prometheus
+destination_workload = "productpage-v1" if "deployment" not in os.environ else os.getenv("deployment")
+#defines the namespace associated with the deployment. Used when exporting metrics to Prometheus
+destination_workload_namespace = "bookinfo-iter8" if "namespace" not in os.environ else os.getenv("namespace")
+#Defines what kind of reward is generated for this deployment. can hold values "low", "mid", "high". Defaults to "low"
+reward_min = 0 if "reward_min" not in os.environ else int(os.getenv("reward_min"))
+reward_max = 5 if "reward_max" not in os.environ else int(os.getenv("reward_max"))
+#Defines the delay in latency induced for this deployment (in seconds)- defaults to no delay
+delay_seconds = 0 if "delay_seconds" not in os.environ else int(os.getenv("delay_seconds"))
+#Defines the probability with which delay is induced Defaults to 1 i.e delay is induced for every request
+delay_probability = 1 if "delay_probability" not in os.environ else float(os.getenv("delay_probability"))
+#Defines a number between 0 and 100 to define how often an error is induced in this deployment
+error_probability = 0 if "error_probability" not in os.environ else float(os.getenv("error_probability"))
+
+#generate reward metric
 def generate_metric():
-    REVENUE.labels(destination_workload=destination_workload, destination_workload_namespace=destination_workload_namespace).inc(random.randint(5,10))
+    ##set reward based on reward_level ENV variable
+    reward = random.randint(reward_min,reward_max)
+    ##Incrememnt the reward metric based on reward
+    reward_metric.labels(destination_workload=destination_workload, destination_workload_namespace=destination_workload_namespace).inc(reward)
 #ENDS HERE
 
 # Add prometheus wsgi middleware to route /metrics requests
@@ -276,6 +296,16 @@ def floodReviews(product_id, headers):
 @app.route('/productpage')
 @trace()
 def front():
+    #induce delay
+    if delay_seconds > 0:
+        if delay_probability >= random.random():
+            time.sleep(delay_seconds)
+
+    #induce error
+    if error_probability > 0:
+        if error_probability >= random.random():
+            raise Exception("Sorry, Bookinfo Application is throwing an error")
+
     product_id = 0  # TODO: replace default value
     headers = getForwardHeaders(request)
     user = session.get('user', '')
@@ -327,13 +357,14 @@ def ratingsRoute(product_id):
     status, ratings = getProductRatings(product_id, headers)
     return json.dumps(ratings), status, {'Content-Type': 'application/json'}
 
+
 # Data providers:
 def getProducts():
     return [
         {
             'id': 0,
             'title': 'The Comedy of Errors',
-            'descriptionHtml': '<a href="https://en.wikipedia.org/wiki/The_Comedy_of_Errors">Wikipedia Summary</a>: The Comedy of Errors is one of <b>William Shakespeare\'s</b> early plays. It is his shortest and one of his most farcical comedies, with a major part of the humour coming from slapstick and mistaken identity, in addition to puns and word play.'
+            'descriptionHtml': f'<a href="https://en.wikipedia.org/wiki/The_Comedy_of_Errors">Wikipedia Summary</a>: The Comedy of Errors is one of <b style="color:{color};">William Shakespeare\'s</b> early plays. It is his shortest and one of his most farcical comedies, with a major part of the humour coming from slapstick and mistaken identity, in addition to puns and word play.'
         }
     ]
 

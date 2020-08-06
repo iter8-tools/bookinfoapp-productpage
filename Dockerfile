@@ -26,6 +26,7 @@ COPY test-requirements.txt ./
 RUN pip install --no-cache-dir -r test-requirements.txt
 
 COPY productpage.py /opt/microservices/
+COPY run.sh /opt/microservices/
 COPY tests/unit/* /opt/microservices/
 COPY templates /opt/microservices/templates
 COPY static /opt/microservices/static
@@ -35,9 +36,11 @@ ARG flood_factor
 ENV FLOOD_FACTOR ${flood_factor:-0}
 
 EXPOSE 9080
+EXPOSE 9081
+EXPOSE 9082
 WORKDIR /opt/microservices
 RUN python -m unittest discover
 
 USER 1
-
-ENTRYPOINT [ "uwsgi", "--http", "0.0.0.0:9080", "--wsgi-file", "productpage.py", "--callable", "app_dispatch"]
+CMD ./run.sh
+#CMD [ "uwsgi", "--http", "0.0.0.0:9080", "--wsgi-file", "productpage.py", "--callable", "app_dispatch"]
