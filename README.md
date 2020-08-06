@@ -29,8 +29,8 @@ This modified code was used to create `iter8/examples-bookinfo-productpage:iter8
 - To change the kind of metric to any other metric, follow the tutorial [here](https://github.com/iter8-tools/metrics-collection)
 
 
-###Customizable Productpage service
-- Image name: ``
+### Customizable Productpage service
+- Image name: `iter8/productpage:demo`
 - This image comes with additional customizable features such as tail latency, latency, error rate, etc
 - The environment variables used are:
   - `color`: Color of the text `William Shakespeare` on the application
